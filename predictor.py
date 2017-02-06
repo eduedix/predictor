@@ -8,7 +8,7 @@ CSVFILEOUTPUT = 'output.csv'
 
 
 def normal_weighted_mean_squared_error(observed, predicted):
-    w = (np.log(observed + 1) + 1)
+    w = np.log(observed + 1) + 1
     error = np.sum(w * (predicted - observed)**2) / np.sum(w)
     return error
 
@@ -24,9 +24,11 @@ class Predictor(object):
         self.seed = seed
 
         self.initial_cv_params = {'eta': 0.1, 'seed': self.seed, 'subsample': 0.8,
-                                  'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
+                                  'colsample_bytree': 0.8, 'objective': 'reg:linear',
+                                  'max_depth': 5, 'min_child_weight': 1}
         self.initial_grid_params = {'learning_rate': 0.1, 'seed': self.seed, 'subsample': 0.8,
-                                    'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
+                                    'colsample_bytree': 0.8, 'objective': 'reg:linear',
+                                    'max_depth': 5, 'min_child_weight': 1}
         self.best_params = {}
 
     def init(self, df_train, eval_function=normal_weighted_mean_squared_error):
@@ -275,9 +277,12 @@ def main():
     predictor.init(df_train, normal_weighted_mean_squared_error)
 
     best_params = {'n_estimators': 10000, 'eta': 0.1, 'subsample': 0.8,
-                   'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
+                   'colsample_bytree': 0.8, 'objective': 'reg:linear',
+                   'max_depth': 5, 'min_child_weight': 1}
+
     # TODO: you can uncomment next line for fine-tuning
     # best_params = predictor.find_best_model_params()
+
     best_model = predictor.fit_best_model(best_params)
 
     predictor.set_test_data(df_test)
