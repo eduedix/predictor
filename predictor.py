@@ -8,13 +8,14 @@ CSVFILEOUTPUT = 'output.csv'
 
 
 def normal_weighted_mean_squared_error(observed, predicted):
-    w = (np.log(observed+1) + 1)
-    error = np.sum(w * (predicted-observed)**2) / np.sum(w)
+    w = (np.log(observed + 1) + 1)
+    error = np.sum(w * (predicted - observed)**2) / np.sum(w)
     return error
 
 
 class Predictor(object):
     """docstring for Predictor"""
+
     def __init__(self, params, target, test_size=0.3, seed=None):
         super(Predictor, self).__init__()
         self.params = params
@@ -22,8 +23,10 @@ class Predictor(object):
         self.test_size = test_size
         self.seed = seed
 
-        self.initial_cv_params = {'eta': 0.1, 'seed': self.seed, 'subsample': 0.8, 'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
-        self.initial_grid_params = {'learning_rate': 0.1, 'seed': self.seed, 'subsample': 0.8, 'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
+        self.initial_cv_params = {'eta': 0.1, 'seed': self.seed, 'subsample': 0.8,
+                                  'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
+        self.initial_grid_params = {'learning_rate': 0.1, 'seed': self.seed, 'subsample': 0.8,
+                                    'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
         self.best_params = {}
 
     def init(self, df_train, eval_function=normal_weighted_mean_squared_error):
@@ -35,7 +38,8 @@ class Predictor(object):
         from sklearn.model_selection import train_test_split
         X = df_train[self.params]
         Y = df_train[self.target]
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, Y, test_size=self.test_size, random_state=self.seed)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            X, Y, test_size=self.test_size, random_state=self.seed)
         self.xgb_training_data = xgb.DMatrix(self.X_train, self.y_train)
         self.xgb_test_data = xgb.DMatrix(self.X_test, self.y_test)
         self.xgb_X_test = xgb.DMatrix(self.X_test)
@@ -110,7 +114,7 @@ class Predictor(object):
             self.best_params.update(best_params)
             return
 
-        cv_params = {'gamma': [i/10.0 for i in range(0, 5)]}
+        cv_params = {'gamma': [i / 10.0 for i in range(0, 5)]}
         ind_params = self.initial_grid_params.copy()
         ind_params.update(self.best_params)
         if 'gamma' in ind_params:
@@ -130,8 +134,8 @@ class Predictor(object):
             self.tune_n_estimators()
             return
         cv_params = {
-            'subsample': [i/10.0 for i in range(6, 10)],
-            'colsample_bytree': [i/10.0 for i in range(6, 10)]
+            'subsample': [i / 10.0 for i in range(6, 10)],
+            'colsample_bytree': [i / 10.0 for i in range(6, 10)]
         }
         ind_params = self.initial_grid_params.copy()
         ind_params.update(self.best_params)
@@ -205,8 +209,10 @@ class Predictor(object):
         num_boost_round = params['n_estimators']
         if 'n_estimators' in params:
             del params['n_estimators']
-        watchlist = [(self.xgb_test_data, 'eval'), (self.xgb_training_data, 'train')]
-        best_model = xgb.train(params, self.xgb_training_data, num_boost_round, watchlist, early_stopping_rounds=100, feval=self.err_func)
+        watchlist = [(self.xgb_test_data, 'eval'),
+                     (self.xgb_training_data, 'train')]
+        best_model = xgb.train(params, self.xgb_training_data, num_boost_round,
+                               watchlist, early_stopping_rounds=100, feval=self.err_func)
         self.best_model = best_model
 
         return best_model
@@ -268,7 +274,8 @@ def main():
     predictor = Predictor(params, target, test_size, seed)
     predictor.init(df_train, normal_weighted_mean_squared_error)
 
-    best_params = {'n_estimators': 10000, 'eta': 0.1, 'subsample': 0.8, 'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
+    best_params = {'n_estimators': 10000, 'eta': 0.1, 'subsample': 0.8,
+                   'colsample_bytree': 0.8, 'objective': 'reg:linear', 'max_depth': 5, 'min_child_weight': 1}
     # TODO: you can uncomment next line for fine-tuning
     # best_params = predictor.find_best_model_params()
     best_model = predictor.fit_best_model(best_params)
